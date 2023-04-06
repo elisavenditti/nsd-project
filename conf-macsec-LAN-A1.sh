@@ -10,7 +10,7 @@ nmcli connection delete macsec-connection
 # Aggiungo la connessione macsec.
 nmcli connection add type macsec \
 con-name macsec-connection \
-ifname macsec0 connection.autoconnect yes \
+ifname macsec0 connection.autoconnect no \
 macsec.parent enp0s3 \
 macsec.mode psk \
 macsec.mka-cak $MKA_CAK \
