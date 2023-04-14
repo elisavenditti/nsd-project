@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package proto;
+
+service SendBinary {
+	rpc sendBinary(stream input) returns (stream output);
+}
+
+message input {
+	bytes file = 1;
+	int32 num_chunk = 2;
+}
+
+message output {
+	string response = 1;
+	int32 num_chunk = 2;
+}
