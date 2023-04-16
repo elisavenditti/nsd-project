@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package proto;
+
+service SendACK {
+	rpc sendACK(id) returns (code);
+}
+
+message id {
+	string id_av = 1;
+}
+
+message code {
+	int32 result = 1;
+}
