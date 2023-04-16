@@ -11,16 +11,14 @@ from proto import centralnode_pb2
 from proto import centralnode_pb2_grpc
 
 # Dimensione del chunk
-CHUNK_DIM = 5000
+CHUNK_DIM = 1024
 
 # Indirizzo IP dell'AV
-IP = "192.168.100.5"
+AV1_IP = "10.123.0.2"
+AV1_PORT = "50053"
 
 # Stringa connessione centralnode
-CENTRALNODE = '192.168.100.6:50051'
-
-# Stringa server grpc AV
-AV = '192.168.100.5:50053'
+CENTRALNODE = '10.23.1.2:50051'
 
 
 
@@ -31,12 +29,14 @@ fase di configurazione e che può iniziare la
 scansione dei binari.
 """
 def sendACK():
+	global AV1_IP
+	global CENTRALNODE
 	
 	while(True):
 		try:
 			channel = grpc.insecure_channel(CENTRALNODE)
 			stub = centralnode_pb2_grpc.SendACKStub(channel)
-			response = stub.sendACK(centralnode_pb2.id(id_av=IP))
+			response = stub.sendACK(centralnode_pb2.id(id_av=AV1_IP))
 			print(str(response.result))
 			break
 		except Exception as e:
@@ -55,6 +55,8 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 	ricevuto direttamente dal centralnode.
 	"""
 	def sendBinary(self, request_iterator, context):
+
+		global CHUNK_DIM
 		binary = bytes()
 		
 		# Nome del file binario che verrà utilizzato
@@ -112,7 +114,7 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 		r = dim % CHUNK_DIM
 		
 		if(q==0):		
-			#Sono nel caso in cui ho un solo chunk
+			# Sono nel caso in cui ho un solo chunk
 			yield av_pb2.output(response=contenuto, num_chunk=0)
 			
 		else:
@@ -126,6 +128,7 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 				
 			if(r > 0):
 				lower_bound = count * CHUNK_DIM
+				time.sleep(1/10)
 				yield av_pb2.output(file=contenuto[lower_bound:lower_bound+r], num_chunk=count)
 				
 		logger.info("I risultati dell'analisi sono stati inviati con successo.")
@@ -150,7 +153,7 @@ server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 av_pb2_grpc.add_SendBinaryServicer_to_server(AVServicer(), server)
 
 logger.info('Avvio del server in ascolto sulla porta 50053...')
-server.add_insecure_port(AV)
+server.add_insecure_port(AV1_IP + ":" + AV1_PORT)
 server.start()
 logger.info('Server avviato con successo.')
 

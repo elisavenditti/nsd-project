@@ -1,9 +1,10 @@
 import grpc
 import time
 import socket
+import secrets
 from concurrent import futures
 
-from flask import Flask, render_template
+from flask import Flask, render_template, flash, request
 from threading import Thread
 from proto import av_pb2
 from proto import av_pb2_grpc
@@ -12,9 +13,16 @@ from proto import centralnode_pb2
 from proto import centralnode_pb2_grpc
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = secrets.token_urlsafe(32)
+
+CENTRAL_NODE_IP = "10.23.1.2"
+CENTRAL_NODE_GRPC_PORT = "50051"
+AV1_IP = "10.123.0.2"
+AV1_PORT = "50053"
+AV1_ADDRESS = "10.123.0.2:50053"
 
 # Dimensione del chunk
-CHUNK_DIM = 5000
+CHUNK_DIM = 1024
 
 # Numero di ACK ricevuti per la fine delle configurazioni
 num_acks = 0
@@ -51,7 +59,8 @@ class CentralnodeServicer(centralnode_pb2_grpc.SendACKServicer):
 	"""
 	def sendACK(self, request, context):
 		global num_acks
-		
+		global NUM_AV
+
 		print("Messaggio di ACK ricevuto dall'antivirus " + request.id_av)
 		
 		# Effettuo un check sul numero di ACK attualmente ricevuti
@@ -66,6 +75,40 @@ class CentralnodeServicer(centralnode_pb2_grpc.SendACKServicer):
 		return centralnode_pb2.code(result=0)
 
 
+def check_conf_and_initial_snapshot():
+	global num_acks
+	global NUM_AV
+	global do_restore
+	global do_snapshot
+	
+	"""
+	I primi due IF riguardano la parte iniziale
+	del protocollo di comunicazione distribuita.
+	E' necessario attendere che i tre AVs terminino
+	la propria configurazione e che vengano eseguiti
+	dall'host gli snapshot iniziali in modo da poter
+	ripristinare un ambiente pulito a seguito dell'
+	esecuzione del binario.
+	"""
+	if(num_acks != NUM_AV):
+		return 1
+		
+	# if(do_snapshot):
+	# 	return 2
+
+	"""
+	Bisogna controllare se è in corso il ripristino
+	dello snapshot a seguito dell'esecuzione e dell'
+	analisi del binario. Questo IF riguarda il check
+	a seguito dello snapshot iniziale.
+	"""
+	# if(do_restore):
+	# 	return 3
+		
+	return 0
+
+
+
 
 
 """
@@ -74,6 +117,7 @@ snapshot degli AVs.
 """
 def safe_environment():
 	global port
+	global do_snapshot
 
 	while True:
 		try:
@@ -95,7 +139,8 @@ def safe_environment():
 			print("Messaggio di risposta ricevuto dall'host: %s" %(msg))
 		except Exception as e:
 			print("Errore nella ricezione della risposta da parte dell'host")
-	
+			continue
+		break
 	do_snapshot = False	
 	print("Gli snapshot sono stati effettuati con successo dall'host.")
 
@@ -109,19 +154,25 @@ server viene sospeso in modo da non averlo inutilmente
 in esecuzione e per motivi di sicurezza.
 """
 def wait_acks():
+	global NUM_AV
+	global num_acks
 	global launch_server_grpc
+	global CENTRAL_NODE_IP
+	global CENTRAL_NODE_GRPC_PORT
 	
 	# Tengo traccia che il server sta per essere lanciato
 	launch_server_grpc = False
-	
+	print("sono in wait acks")
 	while True:
 		try:
 			server = grpc.server(futures.ThreadPoolExecutor(max_workers = 10))	
 			centralnode_pb2_grpc.add_SendACKServicer_to_server(CentralnodeServicer(), server)	
-			server.add_insecure_port('192.168.100.6:50051')	
+			server.add_insecure_port(CENTRAL_NODE_IP + ":" + CENTRAL_NODE_GRPC_PORT)	
 			server.start()		
+			break
 		except Exception as e:
-			print("Errore creazione del server GRPC")		
+			print("Errore creazione del server GRPC")
+			time.sleep(10)		
 		
 	print("Il server è stato lanciato con successo")
 	
@@ -132,7 +183,7 @@ def wait_acks():
 				server.stop(0)
 				print("Il server è stato interrotto con successo")				
 				# Comunicazione con l'host per il ripristino dell'ambiente degli AVs
-				safe_environment()				
+				#safe_environment()				
 				break
 			else:
 				print("Non ancora raggiunti")
@@ -151,6 +202,7 @@ dimensioni.
 """
 def generate_messages(contenuto):
 	
+	global CHUNK_DIM
 	messages = []
 	
 	# Computo il numero di bytes da trasferire
@@ -185,6 +237,7 @@ def generate_messages(contenuto):
 	# Restituisco i messaggi che sono stati precedentemente creati
 	for msg in messages:	
 		print("chunk #" + str(msg.num_chunk) + " inviato.")		
+		time.sleep(1/10)
 		yield msg
 		
 	# print(messages)
@@ -201,16 +254,27 @@ def index():
 			thread.start()
 		except:
 			print("Errore creazione del thread")
+			render_template("error.html", error="Impossibile contattare gli antivirus, ricaricare la pagina.")
 			
 		print("Creazione del thread avvenuta con successo")
 		
-	print("Richiesta Menu")
 		
-	return render_template("Menu.html")
+	error = check_conf_and_initial_snapshot()
+	
+	if error == 1 or error == 2:
+		return render_template("index.html")
+	
+	elif error == 3:
+		return render_template("error.html", error="Comportamento anomalo dell'applicazione.")
+	
+	return render_template("menu.html")
 
 
 
 def restore_snapshots():
+
+	global port
+	global do_restore
 	while True:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -229,70 +293,54 @@ def restore_snapshots():
 		try:
 			msg = s.recv(1024).decode()
 			print("Messaggio di risposta ricevuto dall'host: %s" %(msg))
+			break
 		except Exception as e:
 			print("Errore nella ricezione della risposta da parte dell'host")
-	
+		
 	do_restore = False	
 	print("Gli snapshot sono stati restaurati con successo dall'host.")
 
 
 
-def check_conf_and_initial_snapshot():
-	global num_acks
-	global do_snapshot
-	
-	"""
-	I primi due IF riguardano la parte iniziale
-	del protocollo di comunicazione distribuita.
-	E' necessario attendere che i tre AVs terminino
-	la propria configurazione e che vengano eseguiti
-	dall'host gli snapshot iniziali in modo da poter
-	ripristinare un ambiente pulito a seguito dell'
-	esecuzione del binario.
-	"""
-	if(num_acks != NUM_AV):
-		return 1
-		
-	if(do_snapshot):
-		return 2
-
-	"""
-	Bisogna controllare se è in corso il ripristino
-	dello snapshot a seguito dell'esecuzione e dell'
-	analisi del binario. Questo IF riguarda il check
-	a seguito dello snapshot iniziale.
-	"""
-	if(do_restore):
-		return 3
-		
-	return 0
 
 
-
-@app.route('/malwareAnalysis')
+@app.route('/malwareAnalysis', methods=('GET','POST'))
 def analysis():
+
+	global AV1_IP
+	global AV1_PORT
+	global do_restore
 	
 	ret = check_conf_and_initial_snapshot()
 	
-	if(ret == 1):
-		print("Il numero di ACK ricevuti è pari a " + str(num_acks))
-		return '<h1>Attendi, configurazioni AVs in corso...</h1>'
-	elif(ret == 2):
-		print("In attesa degli snapshot...")
-		return '<h1>Attendi, snapshots in corso...</h1>'
+	if (ret == 1 or ret == 2):
+		return render_template("error.html", error="Errore di inconsistenza nell'applicazione.")
+	# 	print("Il numero di ACK ricevuti è pari a " + str(num_acks))
+	# 	return '<h1>Attendi, configurazioni AVs in corso...</h1>'
+	# elif(ret == 2):
+	# 	print("In attesa degli snapshot...")
+	# 	return '<h1>Attendi, snapshots in corso...</h1>'
 	elif(ret == 3):
-		restore_snapshots()
+		flash('Attendi qualche secondo, ripristino snapshot in corso...')
+		#restore_snapshots()
+
 		print("In attesa della pulizia dell'ambiente a seguito dell'analisi.")
-		return '<h1>Attendi, ripristino snapshot in corso...</h1>'
 	else:
 		print("Si recupera il contenuto del binario richiesto")
 
 
 	# Recupero il nome del file che dovrà essere inviato agli AVs per la scansione.
-	filename = "prova"
+	filename = ""
+	if request.method == "POST":
+		filename = request.form['formFile']
+		print(filename)
+
 	
 	# Apro il file
-	f = open(filename, mode='rb')
+	try:
+		f = open(filename, mode='rb')
+	except:
+		return render_template("error.html", error="Il file selezionato non esiste.")
 	
 	# Leggo il contenuto del file
 	contenuto = f.read()
@@ -301,7 +349,7 @@ def analysis():
 	f.close()
 	
 	try:
-		channel = grpc.insecure_channel('192.168.100.5:50053')
+		channel = grpc.insecure_channel(AV1_IP + ":" + AV1_PORT)
 		stub = av_pb2_grpc.SendBinaryStub(channel)
 		responses = stub.sendBinary(generate_messages(contenuto))
 		for response in responses:
@@ -313,13 +361,9 @@ def analysis():
 	
 	# Restituisci i risultati dell'analisi del binario fatta dagli AVs
 		
-	return '<h1>Malware Analysis</h1>'
+	return render_template("results.html", results=response.response)
 
 
-
-@app.route('/results')
-def results():
-	return '<h1>Questi sono i risultati</h1>'
 
 
 
