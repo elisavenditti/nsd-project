@@ -1,10 +1,14 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, flash
 
 import grpc
+import secrets
 from proto import av_pb2
 from proto import av_pb2_grpc
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = secrets.token_urlsafe(32)
+ack = 0
+error = True
 
 CHUNK_DIM = 5000
 
@@ -61,7 +65,18 @@ def generate_messages(contenuto):
 
 @app.route('/')
 def index():
-	return render_template("Menu.html")
+	global ack
+	global error
+	print(ack)
+	if ack != 3:
+		ack = 3
+		return render_template("index.html")
+	else:
+		if error == True:
+			flash('Ripristino snapshot non ancora terminato, attendere.')
+		return render_template("Menu.html")
+
+
 	
 @app.route('/malwareAnalysis')
 def analysis():
