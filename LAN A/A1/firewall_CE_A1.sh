@@ -1,4 +1,4 @@
-export LAN=enp0s8
+export LAN=macsec0
 export EXT=enp0s3
 
 iptables -F
