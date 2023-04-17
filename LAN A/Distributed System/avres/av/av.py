@@ -19,6 +19,7 @@ AV1_PORT = "50053"
 
 # Stringa connessione centralnode
 CENTRALNODE = '10.23.1.2:50051'
+AV_NAME = "Antivirus clamav"
 
 
 
@@ -57,6 +58,7 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 	def sendBinary(self, request_iterator, context):
 
 		global CHUNK_DIM
+		global AV_NAME
 		binary = bytes()
 		
 		# Nome del file binario che verrà utilizzato
@@ -115,13 +117,13 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 		
 		if(q==0):		
 			# Sono nel caso in cui ho un solo chunk
-			yield av_pb2.output(response=contenuto, num_chunk=0)
+			yield av_pb2.output(antivirus=AV_NAME, response=contenuto, num_chunk=0)
 			
 		else:
 			count = 0
 			for i in range(0,q):
 				try:
-					yield av_pb2.output(file=contenuto[i*CHUNK_DIM:i*CHUNK_DIM + CHUNK_DIM], num_chunk=i)
+					yield av_pb2.output(antivirus=AV_NAME, response=contenuto[i*CHUNK_DIM:i*CHUNK_DIM + CHUNK_DIM], num_chunk=i)
 				except:
 					logger.info("Errore nel trasferimento chunk " + str(i))
 				count = count + 1
@@ -129,7 +131,7 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 			if(r > 0):
 				lower_bound = count * CHUNK_DIM
 				time.sleep(1/10)
-				yield av_pb2.output(file=contenuto[lower_bound:lower_bound+r], num_chunk=count)
+				yield av_pb2.output(antivirus=AV_NAME, response=contenuto[lower_bound:lower_bound+r], num_chunk=count)
 				
 		logger.info("I risultati dell'analisi sono stati inviati con successo.")
 		

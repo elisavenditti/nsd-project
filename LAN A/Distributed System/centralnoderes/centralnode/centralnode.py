@@ -311,6 +311,7 @@ def analysis():
 	global AV1_PORT
 	global do_restore
 	
+	reports = []
 	ret = check_conf_and_initial_snapshot()
 	
 	if (ret == 1 or ret == 2):
@@ -353,19 +354,27 @@ def analysis():
 		stub = av_pb2_grpc.SendBinaryStub(channel)
 		responses = stub.sendBinary(generate_messages(contenuto))
 		for response in responses:
-			print(response.response)	
+			print(response.response)
+
+		rep = []
+		rep.append(response.antivirus)
+		rep.append(response.response)
+		reports.append(rep)
+
 	except:
 		print("Errore invio messaggi agli AV.")
 		
 	do_restore = True
 	
+	
+
 	# Restituisci i risultati dell'analisi del binario fatta dagli AVs
-		
-	return render_template("results.html", results=response.response)
+	return render_template("results.html", results=reports)
 
 
-
-
+@app.route('/risultati', methods=('GET','POST'))
+def res():
+	return render_template("results.html")
 
 if __name__== "__main__":		
 	app.run()

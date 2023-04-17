@@ -12,6 +12,7 @@ message input {
 }
 
 message output {
-	string response = 1;
-	int32 num_chunk = 2;
+	string antivirus = 1;
+	string response = 2;
+	int32 num_chunk = 3;
 }
