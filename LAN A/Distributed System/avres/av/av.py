@@ -96,9 +96,9 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 		if AV_NAME == "Antivirus clamav":
 			command = "clamscan " + filename + " > " + logname
 		elif AV_NAME == "Antivirus chkrootkit":
-			command = "chkrootkit > " + logname
+			command = "sudo chkrootkit > " + logname
 		else:
-			command = "rkhunter --check --skip-keypress > " + logname
+			command = "sudo rkhunter --check --skip-keypress > " + logname
 			
 		process = subprocess.Popen([command], shell=True)
 		

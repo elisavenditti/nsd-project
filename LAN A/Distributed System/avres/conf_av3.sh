@@ -20,4 +20,4 @@ cd rkhunter-1.4.6
 
 export ARG1="10.123.0.4"
 export ARG2="Antivirus rkhunter"
-sudo python3 ./av/av.py $ARG1 $ARG2
+python3 ./av/av.py $ARG1 $ARG2

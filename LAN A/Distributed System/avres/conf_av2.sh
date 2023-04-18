@@ -16,4 +16,4 @@ sudo apt-get install chkrootkit
 
 export ARG1="10.123.0.3"
 export ARG2="Antivirus chkrootkit"
-sudo python3 ./av/av.py $ARG1 $ARG2
+python3 ./av/av.py $ARG1 $ARG2
