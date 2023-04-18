@@ -21,4 +21,6 @@ sudo updatedb
 
 ./compileRpc.sh
 
-python3 ./av/av.py
+export ARG1="10.123.0.2"
+export ARG2="Antivirus clamav"
+python3 ./av/av.py $ARG1 $ARG2

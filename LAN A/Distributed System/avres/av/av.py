@@ -3,6 +3,7 @@ import time
 import logging
 import subprocess
 import os
+import sys
 
 from concurrent import futures
 from proto import av_pb2
@@ -14,12 +15,12 @@ from proto import centralnode_pb2_grpc
 CHUNK_DIM = 1024
 
 # Indirizzo IP dell'AV
-AV1_IP = "10.123.0.2"
-AV1_PORT = "50053"
+# AV1_IP = "10.123.0.2"
+AV_PORT = "50053"
 
 # Stringa connessione centralnode
 CENTRALNODE = '10.23.1.2:50051'
-AV_NAME = "Antivirus clamav"
+# AV_NAME = "Antivirus clamav"
 
 
 
@@ -30,14 +31,14 @@ fase di configurazione e che può iniziare la
 scansione dei binari.
 """
 def sendACK():
-	global AV1_IP
+	global AV_IP
 	global CENTRALNODE
 	
 	while(True):
 		try:
 			channel = grpc.insecure_channel(CENTRALNODE)
 			stub = centralnode_pb2_grpc.SendACKStub(channel)
-			response = stub.sendACK(centralnode_pb2.id(id_av=AV1_IP))
+			response = stub.sendACK(centralnode_pb2.id(id_av=AV_IP))
 			print(str(response.result))
 			break
 		except Exception as e:
@@ -92,7 +93,13 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 		logger.info("Esecuzione del binario completata con successo")
 		
 		# Eseguo la scansione del binario sottomesso
-		command = "clamscan " + filename + " > " + logname
+		if AV_NAME == "Antivirus clamav":
+			command = "clamscan " + filename + " > " + logname
+		elif AV_NAME == "Antivirus chkrootkit":
+			command = "chkrootkit > " + logname
+		else:
+			command = "rkhunter --check --skip-keypress > " + logname
+			
 		process = subprocess.Popen([command], shell=True)
 		
 		# Attendo che la scansione del binario sia completata
@@ -145,6 +152,13 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 		
 	
 
+
+PARAMS = sys.argv
+AV_IP = PARAMS[1]
+AV_NAME = PARAMS[2]
+print("Benvenuto! Sono l'antivirus {} (ip:{})".format(AV_NAME, AV_IP))
+
+
 # Logging
 logging.basicConfig(filename="av.log", format=f'%(levelname)s - %(asctime)s - %(message)s')
 logger = logging.getLogger("av")
@@ -155,7 +169,7 @@ server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 av_pb2_grpc.add_SendBinaryServicer_to_server(AVServicer(), server)
 
 logger.info('Avvio del server in ascolto sulla porta 50053...')
-server.add_insecure_port(AV1_IP + ":" + AV1_PORT)
+server.add_insecure_port(AV_IP + ":" + AV_PORT)
 server.start()
 logger.info('Server avviato con successo.')
 

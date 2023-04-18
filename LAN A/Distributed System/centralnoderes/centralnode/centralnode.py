@@ -17,8 +17,11 @@ app.config['SECRET_KEY'] = secrets.token_urlsafe(32)
 
 CENTRAL_NODE_IP = "10.23.1.2"
 CENTRAL_NODE_GRPC_PORT = "50051"
+
+AV_INFO = ["10.123.0.2", "10.123.0.3", "10.123.0.4"]
+
 AV1_IP = "10.123.0.2"
-AV1_PORT = "50053"
+AV_PORT = "50053"
 AV1_ADDRESS = "10.123.0.2:50053"
 
 # Dimensione del chunk
@@ -28,7 +31,7 @@ CHUNK_DIM = 1024
 num_acks = 0
 
 # Numero degli AVs
-NUM_AV = 1
+NUM_AV = 3
 
 # Mi dice se il server è stato avviato
 launch_server_grpc = True
@@ -307,8 +310,8 @@ def restore_snapshots():
 @app.route('/malwareAnalysis', methods=('GET','POST'))
 def analysis():
 
-	global AV1_IP
-	global AV1_PORT
+	global AV_INFO
+	global AV_PORT
 	global do_restore
 	
 	reports = []
@@ -350,16 +353,19 @@ def analysis():
 	f.close()
 	
 	try:
-		channel = grpc.insecure_channel(AV1_IP + ":" + AV1_PORT)
-		stub = av_pb2_grpc.SendBinaryStub(channel)
-		responses = stub.sendBinary(generate_messages(contenuto))
-		for response in responses:
-			print(response.response)
 
-		rep = []
-		rep.append(response.antivirus)
-		rep.append(response.response)
-		reports.append(rep)
+		# spedisco il binario agli antivirus
+		for av_ip in AV_INFO:
+			channel = grpc.insecure_channel(av_ip + ":" + AV_PORT)
+			stub = av_pb2_grpc.SendBinaryStub(channel)
+			responses = stub.sendBinary(generate_messages(contenuto))
+			for response in responses:
+				print(response.response)
+
+			rep = []
+			rep.append(response.antivirus)
+			rep.append(response.response)
+			reports.append(rep)
 
 	except:
 		print("Errore invio messaggi agli AV.")
