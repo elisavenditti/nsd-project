@@ -356,15 +356,17 @@ def analysis():
 
 		# spedisco il binario agli antivirus
 		for av_ip in AV_INFO:
+			report_string = ""
 			channel = grpc.insecure_channel(av_ip + ":" + AV_PORT)
 			stub = av_pb2_grpc.SendBinaryStub(channel)
 			responses = stub.sendBinary(generate_messages(contenuto))
 			for response in responses:
 				print(response.response)
+				report_string = report_string + response.response
 
 			rep = []
 			rep.append(response.antivirus)
-			rep.append(response.response)
+			rep.append(report_string)
 			reports.append(rep)
 
 	except:

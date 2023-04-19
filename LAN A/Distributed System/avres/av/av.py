@@ -93,9 +93,9 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 		logger.info("Esecuzione del binario completata con successo")
 		
 		# Eseguo la scansione del binario sottomesso
-		if AV_NAME == "Antivirus clamav":
+		if AV_NAME == "clamav":
 			command = "clamscan " + filename + " > " + logname
-		elif AV_NAME == "Antivirus chkrootkit":
+		elif AV_NAME == "chkrootkit":
 			command = "sudo chkrootkit > " + logname
 		else:
 			command = "sudo rkhunter --check --skip-keypress > " + logname
@@ -130,6 +130,7 @@ class AVServicer(av_pb2_grpc.SendBinaryServicer):
 			count = 0
 			for i in range(0,q):
 				try:
+					time.sleep(1/10)
 					yield av_pb2.output(antivirus=AV_NAME, response=contenuto[i*CHUNK_DIM:i*CHUNK_DIM + CHUNK_DIM], num_chunk=i)
 				except:
 					logger.info("Errore nel trasferimento chunk " + str(i))
