@@ -1,1 +1,1 @@
-VBoxManage snapshot Lubuntu-av-4 take safe-env
+VBoxManage snapshot Lubuntu-av-6 take safe4-env

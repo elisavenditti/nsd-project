@@ -1,5 +1,6 @@
 import socket
 import subprocess
+import time
 
 first = True
 
@@ -12,7 +13,7 @@ except:
 port = 50060
 
 try:
-    s.bind(('192.168.1.108', port))
+    s.bind(('172.20.10.5', port))
     s.listen(1)
     print("binding concluso con successo.")
 except:
@@ -29,33 +30,24 @@ while True:
     # Determino il comando che dovrà essere eseguito
     if(first):
         command = 'snapshotVB.bat'
-        first = False
     else:
         command = 'restoreVB.bat'
         
     try:        
         process = subprocess.Popen([command], shell=True)
         process.wait()
+        if(not first):
+            time.sleep(5)
+            command = 'restartVB.bat'
+            process = subprocess.Popen([command], shell=True)
+            process.wait()
+        else:
+            first = False
         c.send('La richiesta è stata soddisfatta con successo.'.encode())
     except Exception as e:
         print("Errore: %s" %(e))
         c.send('La richiesta non è stata soddisfatta con successo.'.encode())
+        
+    
     
     c.close()
-
-"""
-while True:
-    c, addr = s.accept()
-    print("Connessione accettata da", addr)
-    
-    try:
-        command = 'snapshotVB.bat'
-        process = subprocess.Popen([command], shell=True)
-        process.wait()
-        c.send('Snapshots effettuati con successo.'.encode())
-    except Exception as e:
-        print("Errore: %s" %(e))
-    
-    c.close()
-    break
-"""
