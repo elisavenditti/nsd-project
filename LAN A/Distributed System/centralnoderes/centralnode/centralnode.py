@@ -23,6 +23,7 @@ AV_INFO = ["10.123.0.2", "10.123.0.3", "10.123.0.4"]
 AV1_IP = "10.123.0.2"
 AV_PORT = "50053"
 AV1_ADDRESS = "10.123.0.2:50053"
+IP_HOST = "192.168.1.86"
 
 # Dimensione del chunk
 CHUNK_DIM = 1024
@@ -96,8 +97,8 @@ def check_conf_and_initial_snapshot():
 	if(num_acks != NUM_AV):
 		return 1
 		
-	# if(do_snapshot):
-	# 	return 2
+	if(do_snapshot):
+		return 2
 
 	"""
 	Bisogna controllare se è in corso il ripristino
@@ -105,8 +106,8 @@ def check_conf_and_initial_snapshot():
 	analisi del binario. Questo IF riguarda il check
 	a seguito dello snapshot iniziale.
 	"""
-	# if(do_restore):
-	# 	return 3
+	if(do_restore):
+		return 3
 		
 	return 0
 
@@ -121,6 +122,7 @@ snapshot degli AVs.
 def safe_environment():
 	global port
 	global do_snapshot
+	global IP_HOST
 
 	while True:
 		try:
@@ -131,8 +133,8 @@ def safe_environment():
 			continue
 
 		try:
-			s.connect(("192.168.1.108", port))
-			print("Connessione avvenuta con successo")
+			s.connect((IP_HOST, port))
+			print("Connessione con l'host avvenuta con successo")
 		except Exception as e:
 			print("Errore connessione socket %s" %(e))
 			continue
@@ -145,7 +147,7 @@ def safe_environment():
 			continue
 		break
 	do_snapshot = False	
-	print("Gli snapshot sono stati effettuati con successo dall'host.")
+	print("L'host ha effettuato con successo gli shapshot.")
 
 
 
@@ -186,7 +188,7 @@ def wait_acks():
 				server.stop(0)
 				print("Il server è stato interrotto con successo")				
 				# Comunicazione con l'host per il ripristino dell'ambiente degli AVs
-				#safe_environment()				
+				safe_environment()				
 				break
 			else:
 				print("Non ancora raggiunti")
@@ -242,8 +244,6 @@ def generate_messages(contenuto):
 		print("chunk #" + str(msg.num_chunk) + " inviato.")		
 		time.sleep(1/10)
 		yield msg
-		
-	# print(messages)
 
 
 
@@ -267,9 +267,6 @@ def index():
 	if error == 1 or error == 2:
 		return render_template("index.html")
 	
-	elif error == 3:
-		return render_template("error.html", error="Comportamento anomalo dell'applicazione.")
-	
 	return render_template("menu.html")
 
 
@@ -278,6 +275,8 @@ def restore_snapshots():
 
 	global port
 	global do_restore
+	global IP_HOST
+
 	while True:
 		try:
 			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -287,7 +286,7 @@ def restore_snapshots():
 			continue
 
 		try:
-			s.connect(("192.168.1.108", port))
+			s.connect((IP_HOST, port))
 			print("Connessione avvenuta con successo")
 		except Exception as e:
 			print("Errore connessione socket %s" %(e))
@@ -300,14 +299,16 @@ def restore_snapshots():
 		except Exception as e:
 			print("Errore nella ricezione della risposta da parte dell'host")
 		
-	do_restore = False	
+	do_restore = False
+	# attendo per dare il tempo alla macchina virtuale di riavviarsi
+	time.sleep(15)	
 	print("Gli snapshot sono stati restaurati con successo dall'host.")
 
 
 
 
 
-@app.route('/malwareAnalysis', methods=('GET','POST'))
+@app.route('/malwareAnalysis', methods=('POST',))
 def analysis():
 
 	global AV_INFO
@@ -319,25 +320,18 @@ def analysis():
 	
 	if (ret == 1 or ret == 2):
 		return render_template("error.html", error="Errore di inconsistenza nell'applicazione.")
-	# 	print("Il numero di ACK ricevuti è pari a " + str(num_acks))
-	# 	return '<h1>Attendi, configurazioni AVs in corso...</h1>'
-	# elif(ret == 2):
-	# 	print("In attesa degli snapshot...")
-	# 	return '<h1>Attendi, snapshots in corso...</h1>'
+	
 	elif(ret == 3):
 		flash('Attendi qualche secondo, ripristino snapshot in corso...')
-		#restore_snapshots()
-
-		print("In attesa della pulizia dell'ambiente a seguito dell'analisi.")
-	else:
-		print("Si recupera il contenuto del binario richiesto")
+		restore_snapshots()
+		print("In attesa della pulizia dell'ambiente a seguito dell'analisi precedente.")
+	
+	print("Si recupera il contenuto del binario richiesto")
 
 
 	# Recupero il nome del file che dovrà essere inviato agli AVs per la scansione.
-	filename = ""
-	if request.method == "POST":
-		filename = request.form['formFile']
-		print(filename)
+	filename = request.form['formFile']
+	print(filename)
 
 	
 	# Apro il file
@@ -373,16 +367,10 @@ def analysis():
 		print("Errore invio messaggi agli AV.")
 		
 	do_restore = True
-	
-	
 
 	# Restituisci i risultati dell'analisi del binario fatta dagli AVs
 	return render_template("results.html", results=reports)
 
-
-@app.route('/risultati', methods=('GET','POST'))
-def res():
-	return render_template("results.html")
 
 if __name__== "__main__":		
 	app.run()

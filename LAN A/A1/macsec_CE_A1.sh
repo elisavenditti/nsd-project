@@ -11,10 +11,10 @@ nmcli connection delete macsec-connection
 nmcli connection add type macsec \
 con-name macsec-connection \
 ifname macsec0 connection.autoconnect no \
-macsec.parent enp0s3 \
+macsec.parent enp0s8 \
 macsec.mode psk \
 macsec.mka-cak $MKA_CAK \
 macsec.mka-cak-flags 0 \
 macsec.mka-ckn $MKA_CKN \
 ipv4.method manual \
-ipv4.address 10.0.10.2/24
+ipv4.address 10.23.0.1/24

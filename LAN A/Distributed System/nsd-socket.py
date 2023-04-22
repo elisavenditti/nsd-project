@@ -2,6 +2,7 @@ import socket
 import subprocess
 import time
 
+HOST_IP = "192.168.1.86"
 first = True
 
 try:
@@ -13,7 +14,7 @@ except:
 port = 50060
 
 try:
-    s.bind(('172.20.10.5', port))
+    s.bind((HOST_IP, port))
     s.listen(1)
     print("binding concluso con successo.")
 except:
