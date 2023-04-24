@@ -224,22 +224,24 @@ Viceversa, l’hostB2 può comunicare con l’hostB1 perché il server ha annunc
 ## LAN A
 I tre siti della VPN A sono connessi logicamente con una topologia "_hub-and-spoke_". 
 ### A1: MACSEC E FIREWALL
-Nella LAN A1 i tre dispositivi devono comunicare in modo sicuro con MACSEC utilizzando il protocollo MACSEC Key Agreement per scambiarsi il materiale crittografico.  #SPIEGA
+Nella LAN A1 i tre dispositivi devono comunicare in modo sicuro con MACSEC. Per lo scambio delle chiavi, non previsto in MACSEC, abbiamo utilizzato il protocollo MACSEC Key Agreement definito in 802.1X. 
+
+Per prima cosa va definita la "_pre-shared key_" (CAK) da cui derivare il materiale crittografico e il Connectivity Association Key (CAK). In seguito, dopo aver eliminato eventuali connessioni già presenti, viene creata la connessione di tipo macsec identificata dal nome _macsec-connection_. L'interfaccia "_parent_" cambia in base al dispositivo su cui si eseguono i comandi: in questo caso, si tratta del CE_A1 e l'interfaccia selezionata è enp0s8 (interna alla LAN). L'indirizzo utilizzato è quello che corrisponde all'intrefaccia su cui si opera con macsec. Il comando ```ipv4.method manual``` è stato inserito per evitare disconnessioni continue da parte dei dispositivi.
 ```
 export MKA_CAK=00112233445566778899aabbccddeeff 
 export MKA_CKN=00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
 
-nmcli connection delete macsec-connection
-nmcli connection add type macsec \
-con-name macsec-connection \
-ifname macsec0 connection.autoconnect no \
-macsec.parent enp0s8 \
-macsec.mode psk \
-macsec.mka-cak $MKA_CAK \
-macsec.mka-cak-flags 0 \
-macsec.mka-ckn $MKA_CKN \
-ipv4.method manual \
-ipv4.address 10.23.0.1/24
+nmcli 	connection delete macsec-connection
+nmcli 	connection add type macsec \
+	con-name macsec-connection \
+	ifname macsec0 connection.autoconnect no \
+	macsec.parent enp0s8 \
+	macsec.mode psk \
+	macsec.mka-cak $MKA_CAK \
+	macsec.mka-cak-flags 0 \
+	macsec.mka-ckn $MKA_CKN \
+	ipv4.method manual \
+	ipv4.address 10.23.0.1/24
 ```
 
 In aggiunta, il CE_A1 deve proteggere la LAN con un firewall: *[firewall_CE_A1.sh](./LAN&#32;A/A1/firewall_CE_A1.sh "firewall_CE_A1.sh")*.
