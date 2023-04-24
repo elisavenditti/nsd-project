@@ -30,7 +30,6 @@ Relazione per il progetto di NSD (Laurea Magistrale in Ingegneria Informatica):
         <li><a href="#A2-E-A3:-SISTEMA DISTRIBUITO">A2 E A3: SISTEMA DISTRIBUITO</a></li>
       </ul>
     </li>
-
   </ol>
 </details>
 
@@ -299,4 +298,11 @@ iptables -A FORWARD -i $EXT -o $EXT -s 10.23.1.0/24 -d 10.23.0.0/24 -j ACCEPT
 
 ### A2 E A3: SISTEMA DISTRIBUITO
 L’ambiente virtualizzato che analizza i file binari è un sistema distribuito geograficamente. Per la comunicazione abbiamo utilizzato grpc … #SPIEGA
+
+https://user-images.githubusercontent.com/57570854/234013949-2cb2388e-50e6-41ac-a6af-915cb0ea2d9f.mp4
+
+![AV Result](./images/av.png "AV Result")
+
+
+
 
