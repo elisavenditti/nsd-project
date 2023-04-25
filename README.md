@@ -299,12 +299,32 @@ iptables -A FORWARD -i $EXT -o $EXT -s 10.23.1.0/24 -d 10.23.0.0/24 -j ACCEPT
 
 
 ### A2 E A3: SISTEMA DISTRIBUITO
-L’ambiente virtualizzato che analizza i file binari è un sistema distribuito geograficamente. Per la comunicazione abbiamo utilizzato grpc … #SPIEGA
+Nel nodo centrale abbiamo utilizzato il framework Flask per la realizzazione di un'applicazione web a cui sottomettere i file binari da analizzare. Poichè la comunicazione con gli antivirus non è locale ma si estende (potenzialmente) su scala geografica, abbiamo utilizzato il framework gRPC per le chiamate a procedura remota. I servizi offerti sono:
+* ___sendAck___ - offerto dal nodo centrale. Viene invocato dagli antivirus in modo da comunicare al nodo centrale il completamento di task di setup. 
+* ___sendBinary___ - offerto dagli antivirus. Viene invocato dal nodo centrale per spedire il file da analizzare e ricevere il relativo report.
+
+L'interazione tra i dispositivi viene descritta nei seguenti punti.
+1. Il server attende che il numero di ack ricevuti sia pari al numero atteso di antivirus. Per far questo, viene creato un nuovo thread che crea il server gRPC per il servizio _sendAck_ e, una volta ricevuti gli ack attesi, termina il server in modo da non sprecare risorse.
+2. Ricevuti gli ack, il nodo centrale si occupa di creare uno snapshot pulito per gli antivirus. In realtà è l'host ad eseguire materialmente questo compito: rimane in ascolto su una socket (*[nsd-socket.py](./LAN&#32;A/Distributed&#32;System/nsd-socket.py "nsd-socket.py")*) attendendo le richieste da parte del central node. Ricevuta la richiesta, l'host si occupa di eseguire i file .bat per la creazione di uno snapshot direttamente su Virtual Box:
+	```
+	VBoxManage snapshot Lubuntu6-big take safe4-env
+	```
+3. Terminata la creazione degli snapshot, l'utente può immettere un file per la scansione. Questo viene inviato agli antivirus tramite il servizio _sendBinary_ che, come risultato, restituisce il report della scansione. Le sequenze di byte vengono opportunamente divise in chunk in modo da essere spedite come stream. (__concetto da migliorare__).
 
 https://user-images.githubusercontent.com/57570854/234013949-2cb2388e-50e6-41ac-a6af-915cb0ea2d9f.mp4
 
 ![AV Result](./images/av.png "AV Result")
 
+4. Se si vuole richiedere una seconda scansione bisogna ripristinare lo snapshot pulito per gli antivirus. Ancora una volta si delega all'host questo compito seguendo lo stesso procedimento del punto (2). I comandi da eseguire sono:
+	```
+	VBoxManage controlvm Lubuntu6-big poweroff
+	VBoxManage snapshot Lubuntu6-big restore safe4-env
+	VBoxManage startvm Lubuntu6-big
+	```
+I tre antivirus utilizzati sono:
+* clamav
+* rkhunter
+* chkrootkit
 
 
 
