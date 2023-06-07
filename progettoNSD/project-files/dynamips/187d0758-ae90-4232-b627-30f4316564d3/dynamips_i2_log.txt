@@ -1,0 +1,30 @@
+Jun 07 08:44:46.474 HYPERVISOR: Release 0.2.17-x86/Windows (tag 2017072410)
+Jun 07 08:44:46.475 HYPERVISOR: Started on IP = localhost, TCP port = 62842.
+Jun 07 08:44:46.988 HYPERVISOR: exec_cmd: hypervisor version 
+Jun 07 08:44:46.988 HYPERVISOR: exec_cmd: hypervisor working_dir C:\Users\Utente\Desktop\nsd-project\progettoNSD\project-files\dynamips 
+Jun 07 08:44:46.988 GENERAL: working_dir=C:\Users\Utente\Desktop\nsd-project\progettoNSD\project-files\dynamips
+Jun 07 08:44:46.989 HYPERVISOR: exec_cmd: hypervisor working_dir C:\Users\Utente\Desktop\nsd-project\progettoNSD\project-files\dynamips\a823e15d-6341-445c-a0d4-0cc2c07e49e6 
+Jun 07 08:44:46.990 GENERAL: working_dir=C:\Users\Utente\Desktop\nsd-project\progettoNSD\project-files\dynamips\a823e15d-6341-445c-a0d4-0cc2c07e49e6
+Jun 07 08:44:46.991 HYPERVISOR: exec_cmd: vm create PE3 3 c7200 
+Jun 07 08:44:46.993 VM: VM PE3 created.
+Jun 07 08:44:46.993 HYPERVISOR: exec_cmd: vm set_con_tcp_port PE3 5008 
+Jun 07 08:44:46.994 HYPERVISOR: exec_cmd: c7200 get_mac_addr PE3 
+Jun 07 08:44:46.994 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:46.995 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 0 0 C7200-IO-FE 
+Jun 07 08:44:46.996 HYPERVISOR: exec_cmd: vm set_disk0 PE3 0 
+Jun 07 08:44:46.996 HYPERVISOR: exec_cmd: vm set_exec_area PE3 64 
+Jun 07 08:44:46.997 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:46.997 HYPERVISOR: exec_cmd: vm set_idle_pc PE3 0x606e0000 
+Jun 07 08:44:46.999 HYPERVISOR: exec_cmd: vm set_ios PE3 C:/Users/Utente/GNS3/images/IOS/c7200-adventerprisek9-mz.124-24.T5.image 
+Jun 07 08:44:46.999 HYPERVISOR: exec_cmd: c7200 set_mac_addr PE3 ca03.1c44.0000 
+Jun 07 08:44:47.000 HYPERVISOR: exec_cmd: vm set_nvram PE3 512 
+Jun 07 08:44:47.001 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:47.001 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 1 0 PA-GE 
+Jun 07 08:44:47.001 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:47.002 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 2 0 PA-GE 
+Jun 07 08:44:47.003 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:47.003 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 3 0 PA-GE 
+Jun 07 08:44:47.003 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:47.004 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 4 0 PA-GE 
+Jun 07 08:44:47.004 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:47.004 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 5 0 PA-GE 
