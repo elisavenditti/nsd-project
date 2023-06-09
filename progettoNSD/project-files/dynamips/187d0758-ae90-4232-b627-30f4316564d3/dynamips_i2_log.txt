@@ -28,3 +28,29 @@ Jun 07 08:44:47.003 HYPERVISOR: exec_cmd: vm get_status PE3
 Jun 07 08:44:47.004 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 4 0 PA-GE 
 Jun 07 08:44:47.004 HYPERVISOR: exec_cmd: vm get_status PE3 
 Jun 07 08:44:47.004 HYPERVISOR: exec_cmd: vm slot_add_binding PE3 5 0 PA-GE 
+Jun 07 08:44:50.882 HYPERVISOR: exec_cmd: nio create_udp udp-bbd66db8-3678-4836-983f-665fad5741a9 10010 127.0.0.1 10011 
+Jun 07 08:44:51.136 HYPERVISOR: exec_cmd: vm slot_add_nio_binding PE3 1 0 udp-bbd66db8-3678-4836-983f-665fad5741a9 
+Jun 07 08:44:51.136 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:51.832 HYPERVISOR: exec_cmd: nio create_udp udp-b26b3912-3b77-461c-9aa4-84bcf1a9b86c 10028 127.0.0.1 10029 
+Jun 07 08:44:51.834 HYPERVISOR: exec_cmd: vm slot_add_nio_binding PE3 3 0 udp-b26b3912-3b77-461c-9aa4-84bcf1a9b86c 
+Jun 07 08:44:51.835 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:44:52.622 HYPERVISOR: exec_cmd: nio create_udp udp-ce232649-6af1-4805-b36e-a4208287cd0a 10046 127.0.0.1 10047 
+Jun 07 08:44:52.625 HYPERVISOR: exec_cmd: vm slot_add_nio_binding PE3 2 0 udp-ce232649-6af1-4805-b36e-a4208287cd0a 
+Jun 07 08:44:52.626 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:59:33.585 HYPERVISOR: exec_cmd: vm set_ghost_status PE3 2 
+Jun 07 08:59:33.585 HYPERVISOR: exec_cmd: vm set_ghost_file PE3 C:\Users\Utente\Desktop\nsd-project\progettoNSD\project-files\dynamips\c7200-adventerprisek9-mz.124-24.T5.image-256.ghost 
+Jun 07 08:59:33.585 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 08:59:33.586 HYPERVISOR: exec_cmd: vm set_config PE3 configs\i3_startup-config.cfg 
+Jun 07 08:59:33.586 HYPERVISOR: exec_cmd: vm start PE3 
+Jun 07 09:00:03.947 HYPERVISOR: exec_cmd: vm extract_config PE3 
+Jun 07 12:43:40.671 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 12:43:40.671 HYPERVISOR: exec_cmd: vm stop PE3 
+Jun 07 12:43:40.899 VM: VM PE3 shutdown.
+Jun 07 12:43:40.900 HYPERVISOR: exec_cmd: vm extract_config PE3 
+Jun 07 12:43:44.931 HYPERVISOR: exec_cmd: vm get_status PE3 
+Jun 07 12:43:44.932 HYPERVISOR: exec_cmd: vm extract_config PE3 
+Jun 07 12:43:44.933 HYPERVISOR: exec_cmd: vm delete PE3 
+Jun 07 12:43:44.933 VM: VM PE3 destroyed.
+Jun 07 12:43:44.934 HYPERVISOR: exec_cmd: hypervisor stop 
+Jun 07 12:43:45.410 HYPERVISOR: Stopped.
+Jun 07 12:43:45.410 GENERAL: reset done.
