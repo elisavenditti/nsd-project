@@ -40,7 +40,7 @@ Relazione per il progetto di NSD (Laurea Magistrale in Ingegneria Informatica):
 Nel progetto è richiesta la realizzazione di una rete composta da 2 sistemi autonomi (AS100 e AS200) che forniscono la connettività a cinque reti private.
 
 * L’AS100 fornisce il servizio VPN BGP/MPLS ai siti della VPN A per cui crea una topologia “_hub-and-spoke_”.
-*	Il server presente nell’AS200 fornisce un’overlay VPN per il client nella LAN B1. 
+*	Il server presente nell’AS200 fornisce un’overlay VPN per il client nella LAN B2. 
 
 Nella LAN-A1 i dispositivi comunicano tramite MACsec e sono protetti da un firewall implementato nel gateway. Gli altri due siti della VPN A rappresentano un ambiente virtualizzato per testare la presenza di malware su file binari. Il nodo centrale è l’unico punto pubblicamente accessibile per invocare questo servizio. Infatti, gli antivirus si trovano in un altro sito della VPN A e sono protetti da un firewall. È richiesto il ripristino di snapshot puliti dopo l’esecuzione del malware da parte degli antivirus.
 <br/></br>
@@ -87,7 +87,7 @@ Dopo la configurazione dell’indirizzo di ogni interfaccia, i comandi si divers
 * Le interfacce collegate direttamente con una rete privata devono offrire un servizio di NAT. Bisogna specificare quali sono le interfacce interne e quali sono quelle esterne. Infine, abbiamo creato una ACL per permettere solo il traffico interessato e per tradurre l’indirizzo sorgente dei pacchetti che escono dalla rete privata con l’indirizzo di loopback.
 * Le interfacce fisiche vanno esplicitamente mantenute abilitate con il comando ```no shutdown```.
 * Le interfacce interne all’AS devono abilitare il forwarding MPLS dei pacchetti ipv4 con ```mpls ip``` per poter offrire il servizio di VPN BGP/MPLS.
-* Le interfacce esterne che sono direttamente connesse ai siti della VPN BGP/MPLS devono attivare il protocollo VRF tramite il comando ```ip vrf forwarding vpnA```. Il VRF, ovviamente, va creato a priori: 
+* Le interfacce esterne che sono direttamente connesse ai siti della VPN BGP/MPLS devono essere associate alla corretta VRF tramite il comando ```ip vrf forwarding vpnA```. Il VRF, ovviamente, va creato a priori: 
 <br/></br>
   ```
   ip vrf vpnA
@@ -96,11 +96,11 @@ Dopo la configurazione dell’indirizzo di ogni interfaccia, i comandi si divers
    route-target import 100:2
    !
   ```
-  Il route distinguisher è 100 per la VPN A e, nel nostro caso, è anche l’unico perché non esistono altre VPN da creare con BGP/MPLS. Il route target ci serve per creare la topologia “_hub-and-spoke_”: 1 identifica l’_hub_ e 2 lo _spoke_. Nell’esempio osserviamo le direttive per l’_hub_ presente dietro il router R3. Viene specificato di esportare i pacchetti con il route target associato all’_hub_ e di importare solo i pacchetti provenienti dagli _spoke_.
+  Il route distinguisher è 100 per la VPN A e, nel nostro caso, è anche l’unico perché non esistono altre VPN da creare con BGP/MPLS. Il route target ci serve per creare la topologia “_hub-and-spoke_”: 1 identifica l’_hub_ e 2 lo _spoke_. Nell’esempio osserviamo le direttive per l’_hub_ presente dietro il router PE3. Viene specificato di esportare i pacchetti con il route target associato all’_hub_ e di importare solo i pacchetti provenienti dagli _spoke_.
 
 
 ### OSPF
-Una volta completate le interfacce si deve abilitare il routing OSPF. Nell’esempio mostriamo come il router R3 esporti le reti a lui connesse: 1.3.0.1/32 e 10.0.34.0/30.
+Una volta completate le interfacce si deve abilitare il routing OSPF. Nell’esempio mostriamo come il router PE3 esporti le reti a lui connesse: 1.3.0.1/32 e 10.0.34.0/30.
 ```
 router ospf 1
  router-id 1.3.0.1
@@ -135,7 +135,7 @@ Per scambiare informazioni eterogenee con BGP utilizziamo la sua estensione MP-i
      neighbor 1.1.0.1 next-hop-self
      exit-address-family
     ```
-2.	Permettere lo scambio di informazioni di routing IP associate ad uno specifico VRF. In questo caso R3 esporta anche la rotta generica 10.23.0.0/16 in modo che i due _spoke_ possano parlare tramite l’_hub_.
+2.	Permettere lo scambio di informazioni di routing IP associate ad uno specifico VRF. In questo caso, PE3 esporta anche la rotta generica 10.23.0.0/16 in modo che i due _spoke_ possano parlare tramite l’_hub_.
     ```
     address-family ipv4 vrf vpnA
      network 10.123.0.0 mask 255.255.0.0
@@ -158,7 +158,7 @@ Per concludere la configurazione dei router, abbiamo aggiunto le rotte.
 
 <br/></br>
 ## LAN B
-La LAN B possiede due siti: uno collegato all’AS100 e uno all’AS200.  Questi due siti devono far parte di una VPN creata con OpenVPN. L’hostB2 è l’unico client che sfrutta il server per poter comunicare con l’hostB1 nella rete privata remota.
+La LAN B possiede due siti: uno collegato all’AS100 e uno all’AS200. L’hostB2 è l’unico client di OpenVPN che sfrutta il server per poter comunicare con l’hostB1 nella rete privata remota.
 
 ### PASSO 1: configurare la rete
 Non ci sono particolarità nella configurazione di rete. È bene solo notare come il server abiliti _forwarding_ e _masquerade_ in modo che l’hostB1 possa comunicare con l’esterno.
@@ -193,7 +193,7 @@ client-config-dir ccd
 keepalive 10 120
 cipher AES-256-CBC
 ```
-Con i comando ```server``` indichiamo il range di indirizzi appartenenti alla rete overlay (di cui il server prenderà il primo utile: 192.168.100.1). Con il comando ```push```, invece, avvertiamo il client che dietro il server c’è la rete 192.168.17.0/24. In questo modo viene modificato l’underlay routing del client che dovrà avvalersi della rete overlay per poter raggiungere 192.168.17.0/24.
+Con il comando ```server``` indichiamo il range di indirizzi appartenenti alla rete overlay (di cui il server prenderà il primo utile: 192.168.100.1). Con il comando ```push```, invece, avvertiamo il client che dietro il server c’è la rete 192.168.17.0/24. In questo modo viene modificato l’underlay routing del client che dovrà avvalersi della rete overlay per poter raggiungere 192.168.17.0/24.
 Nella cartella ccd è presente un file di configurazione (*[client](./LAN&#32;B/config&#32;ovpn/ccd/client "client")*) che assegna all’unico client presente gli indirizzi nella rete overlay: ```ifconfig-push 192.168.100.101 192.168.100.102```.
 Lato client viene specificata un’altra configurazione (*[client.ovpn](./LAN&#32;B/config&#32;ovpn/client.ovpn "client.ovpn")*):
 
@@ -226,7 +226,7 @@ I tre siti della VPN A sono connessi logicamente con una topologia "_hub-and-spo
 ### A1: MACSEC E FIREWALL
 Nella LAN A1 i tre dispositivi devono comunicare in modo sicuro con MACSEC. Per lo scambio delle chiavi, non previsto in MACSEC, abbiamo utilizzato il protocollo MACSEC Key Agreement definito in 802.1X. 
 
-Per prima cosa va definita la "_pre-shared key_" (CAK) da cui derivare il materiale crittografico e il Connectivity Association Key Name (CKN). In seguito, dopo aver eliminato eventuali connessioni già presenti, viene creata la connessione di tipo macsec identificata dal nome _macsec-connection_. L'interfaccia "_parent_" cambia in base al dispositivo su cui si eseguono i comandi: in questo caso, si tratta del CE_A1 e l'interfaccia selezionata è enp0s8 (interna alla LAN). L'indirizzo utilizzato è quello che corrisponde all'intrefaccia su cui si opera con macsec. Il comando ```ipv4.method manual``` è stato inserito per evitare disconnessioni continue da parte dei dispositivi.
+Per prima cosa va definita la "_pre-shared key_" (CAK) da cui derivare il materiale crittografico e il Connectivity Association Key Name (CKN). In seguito, dopo aver eliminato eventuali connessioni già presenti, viene creata la connessione di tipo macsec identificata dal nome _macsec-connection_. L'interfaccia "_parent_" cambia in base al dispositivo su cui si eseguono i comandi: in questo caso, si tratta del CE_A1 e l'interfaccia selezionata è enp0s8 (interna alla LAN). L'indirizzo utilizzato è quello che corrisponde all'interfaccia su cui si opera con macsec. Il comando ```ipv4.method manual``` è stato inserito per evitare disconnessioni continue da parte dei dispositivi.
 ```
 export MKA_CAK=00112233445566778899aabbccddeeff 
 export MKA_CKN=00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
@@ -304,12 +304,12 @@ Nel nodo centrale abbiamo utilizzato il framework Flask per la realizzazione di 
 * ___sendBinary___ - offerto dagli antivirus. Viene invocato dal nodo centrale per spedire il file da analizzare e ricevere il relativo report.
 
 L'interazione tra i dispositivi viene descritta nei seguenti punti.
-1. Il server attende che il numero di ack ricevuti sia pari al numero atteso di antivirus. Per far questo, viene creato un nuovo thread che crea il server gRPC per il servizio _sendAck_ e, una volta ricevuti gli ack attesi, termina il server in modo da non sprecare risorse.
-2. Ricevuti gli ack, il nodo centrale si occupa di creare uno snapshot pulito per gli antivirus. In realtà è l'host ad eseguire materialmente questo compito: rimane in ascolto su una socket (*[nsd-socket.py](./LAN&#32;A/Distributed&#32;System/nsd-socket.py "nsd-socket.py")*) attendendo le richieste da parte del central node. Ricevuta la richiesta, l'host si occupa di eseguire i file .bat per la creazione di uno snapshot direttamente su Virtual Box:
+1. Il server attende che il numero di ack ricevuti sia pari al numero atteso di antivirus. Per far questo, viene creato un nuovo thread che istanzia il server gRPC per il servizio _sendAck_ e, una volta ricevuti gli ack attesi, termina il server in modo da non sprecare risorse.
+2. Ricevuti gli ack, il nodo centrale si occupa di creare uno snapshot pulito per gli antivirus. In realtà è l'host ad eseguire materialmente questo compito: rimane in ascolto su una socket (*[nsd-socket.py](./LAN&#32;A/Distributed&#32;System/nsd-socket.py "nsd-socket.py")*) attendendo le richieste da parte del central node. Ricevuta la richiesta, l'host si occupa di eseguire i file _.bat_ per la creazione di uno snapshot direttamente su Virtual Box:
 	```
 	VBoxManage snapshot Lubuntu6-big take safe4-env
 	```
-3. Terminata la creazione degli snapshot, l'utente può immettere un file per la scansione. Questo viene inviato agli antivirus tramite il servizio _sendBinary_ che, come risultato, restituisce il report della scansione. 
+3. Terminata la creazione degli snapshot, l'utente può sottomettere un file per la scansione. Questo viene inviato agli antivirus tramite il servizio _sendBinary_ che, come risultato, restituisce il report della scansione. 
 
 https://user-images.githubusercontent.com/57570854/234013949-2cb2388e-50e6-41ac-a6af-915cb0ea2d9f.mp4
 
