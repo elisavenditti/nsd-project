@@ -309,7 +309,7 @@ L'interazione tra i dispositivi viene descritta nei seguenti punti.
 	```
 	VBoxManage snapshot Lubuntu6-big take safe4-env
 	```
-3. Terminata la creazione degli snapshot, l'utente può immettere un file per la scansione. Questo viene inviato agli antivirus tramite il servizio _sendBinary_ che, come risultato, restituisce il report della scansione. Le sequenze di byte vengono opportunamente divise in chunk in modo da essere spedite come stream. (__concetto da migliorare__).
+3. Terminata la creazione degli snapshot, l'utente può immettere un file per la scansione. Questo viene inviato agli antivirus tramite il servizio _sendBinary_ che, come risultato, restituisce il report della scansione. 
 
 https://user-images.githubusercontent.com/57570854/234013949-2cb2388e-50e6-41ac-a6af-915cb0ea2d9f.mp4
 
