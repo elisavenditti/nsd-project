@@ -311,7 +311,11 @@ L'interazione tra i dispositivi viene descritta nei seguenti punti.
 	```
 3. Terminata la creazione degli snapshot, l'utente può sottomettere un file per la scansione. Questo viene inviato agli antivirus tramite il servizio _sendBinary_ che, come risultato, restituisce il report della scansione. 
 
-https://user-images.githubusercontent.com/57570854/234013949-2cb2388e-50e6-41ac-a6af-915cb0ea2d9f.mp4
+
+
+
+https://github.com/elisavenditti/nsd-project/assets/57570854/522eab74-a514-4327-9e38-42f2f10394e4
+
 
 ![AV Result](./images/av.png "AV Result")
 
