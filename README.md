@@ -314,7 +314,10 @@ L'interazione tra i dispositivi viene descritta nei seguenti punti.
 
 
 
-https://github.com/elisavenditti/nsd-project/assets/57570854/522eab74-a514-4327-9e38-42f2f10394e4
+
+https://github.com/elisavenditti/nsd-project/assets/57570854/605af61b-fa37-4625-8c5f-8777e036f198
+
+
 
 
 ![AV Result](./images/av.png "AV Result")
